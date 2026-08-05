@@ -1,0 +1,6 @@
+projectKey=SIVAD
+serverUrl=http://localhost:9000
+serverVersion=26.7.0.124771
+dashboardUrl=http://localhost:9000/dashboard?id=SIVAD
+ceTaskId=e9ad5727-f93f-4dde-98ba-08a307516375
+ceTaskUrl=http://localhost:9000/api/ce/task?id=e9ad5727-f93f-4dde-98ba-08a307516375
