@@ -5,11 +5,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
-from app.adapters.gemini_adapter import GeminiAdapter
+from app.adapters.qwen_adapter import QwenAdapter
 from app.domain.documento import Documento
 
 router = APIRouter()
-_extractor = GeminiAdapter()
+_extractor = QwenAdapter()
 
 _RESPONSES = {
     400: {"description": "Tipo de archivo no permitido. Solo JPG o PNG."},
