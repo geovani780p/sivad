@@ -21,11 +21,11 @@ class GeminiAdapter(ExtractorPort):
         """Inicializa el cliente de Gemini con la API key del entorno."""
         self._client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-    def extraer(self, imagen_bytes: bytes, tipo_documento: str) -> dict:
-        """Extrae datos del documento usando Gemini Vision."""
+    def extraer(self, imagen_bytes: bytes, eleccion: str) -> dict:
+        """Extrae datos del documento usando Gemini Vision (adaptador obsoleto)."""
         prompt = (
             "Eres un sistema de extracción de datos de documentos oficiales mexicanos. "
-            f"Analiza la imagen y extrae todos los datos visibles del documento tipo: {tipo_documento}. "
+            f"Analiza la imagen y extrae todos los datos visibles del acta de la eleccion: {eleccion}. "
             "Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown, sin ```json. "
             "Solo el JSON puro con los campos encontrados."
         )

@@ -1,7 +1,36 @@
+# Variables de entorno y credenciales
 .env
+*.token
+mis_keys.txt
+
+# Entorno virtual
 venv/
+.venv/
+
+# Cache de Python
 __pycache__/
 **/__pycache__/
 **/*.pyc
 *.pyc
+*.pyo
+
+# SonarQube
+.sonar/
+.scannerwork/
+
+# Imagenes generadas durante pruebas
+imagen_preprocesada.jpg
+recorte_*.jpg
+crop_*.jpg
+
+# Resultados de ejecuciones de prueba
+resultados_pruebas/
+
+# Sistema operativo
 .DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+test_qwen.py 

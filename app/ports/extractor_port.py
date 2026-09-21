@@ -8,6 +8,11 @@ class ExtractorPort(ABC):
     """Contrato que deben cumplir todos los adaptadores de extracción."""
 
     @abstractmethod
-    def extraer(self, imagen_bytes: bytes, tipo_documento: str) -> dict:
-        """Extrae datos estructurados de la imagen de un documento."""
+    def extraer(self, imagen_bytes: bytes, eleccion: str) -> dict:
+        """Extrae los resultados de votacion de la imagen de un acta.
+
+        Args:
+            imagen_bytes: contenido de la imagen (JPG o PNG).
+            eleccion: clave de la plantilla a usar, p. ej. "2024_presidencia".
+        """
         ...
