@@ -26,6 +26,36 @@ OPCIONES_MODELO = {
     "repeat_penalty": 1.0,
 }
 
+# Proporcion vertical de la tabla a partir de la cual se recorta la franja
+# inferior que contiene las filas finales (no registrados, nulos y TOTAL).
+# Se deja margen hacia arriba: el modelo ubica estas filas por su etiqueta
+# impresa, por lo que incluir un renglon adicional no afecta la lectura.
+INICIO_FRANJA_TOTALES = 0.75
+
+# Filas finales comunes a todas las plantillas, con la etiqueta impresa en el acta
+FILAS_FINALES = {
+    "CANDIDATOS_NO_REGISTRADOS": "CANDIDATOS NO REGISTRADOS",
+    "VOTOS_NULOS": "VOTOS NULOS",
+    "TOTAL": "TOTAL",
+}
+
+_CAMPO_VOTOS = {
+    "type": "object",
+    "properties": {
+        "votos_letra": {"type": "string"},
+        "votos_numero": {"type": "string"},
+    },
+    "required": ["votos_letra", "votos_numero"],
+}
+
+# Esquema con campos nombrados: al no ser una lista, la respuesta no puede
+# desfasarse de posicion como ocurre en la lectura de la tabla completa.
+ESQUEMA_TOTALES = {
+    "type": "object",
+    "properties": {clave: _CAMPO_VOTOS for clave in FILAS_FINALES},
+    "required": list(FILAS_FINALES),
+}
+
 
 def _esquema_respuesta(n_filas: int) -> dict:
     """Construye el JSON Schema que obliga al modelo a devolver n_filas exactas.
@@ -91,6 +121,50 @@ def _asignar_por_posicion(datos: dict, filas_plantilla: list[str]) -> dict:
     return {"resultados": asignados}
 
 
+def _aplicar_totales(datos: dict, totales: dict | None) -> dict:
+    """Reemplaza las filas finales con la lectura dedicada y detecta desfases.
+
+    Solo se reemplaza una fila cuando la lectura dedicada obtuvo un valor
+    numerico. Se registra si la lectura principal presentaba el desfase de
+    filas: el TOTAL de la lectura principal coincide con los VOTOS NULOS de
+    la lectura dedicada, lo que indica que las filas se recorrieron un lugar.
+    """
+    datos["totales_verificados"] = False
+    datos["desfase_detectado"] = False
+    if not isinstance(totales, dict):
+        return datos
+
+    por_partido = {f["partido"]: f for f in datos["resultados"]}
+    total_principal = por_partido.get("TOTAL", {}).get("votos_numero")
+
+    lecturas = {}
+    for clave in FILAS_FINALES:
+        campo = totales.get(clave) if isinstance(totales.get(clave), dict) else {}
+        lecturas[clave] = {
+            "votos_letra": str(campo.get("votos_letra") or "").strip().lower(),
+            "votos_numero": _normalizar_numero(campo.get("votos_numero")),
+        }
+
+    nulos_dedicado = lecturas["VOTOS_NULOS"]["votos_numero"]
+    total_dedicado = lecturas["TOTAL"]["votos_numero"]
+    datos["desfase_detectado"] = (
+        total_principal is not None
+        and total_dedicado is not None
+        and total_principal != total_dedicado
+        and total_principal == nulos_dedicado
+    )
+
+    for clave, lectura in lecturas.items():
+        fila = por_partido.get(clave)
+        if fila is not None and lectura["votos_numero"] is not None:
+            fila["votos_letra"] = lectura["votos_letra"]
+            fila["votos_numero"] = lectura["votos_numero"]
+            fila["fuente"] = "lectura_dedicada"
+
+    datos["totales_verificados"] = total_dedicado is not None
+    return datos
+
+
 class QwenAdapter(ExtractorPort):
     """Implementación del ExtractorPort usando Qwen 2.5 Vision con Ollama local."""
 
@@ -134,6 +208,38 @@ class QwenAdapter(ExtractorPort):
             "Si un renglón no tiene nada escrito, deja ambos campos como cadena vacía."
         )
 
+    def _recortar_franja_totales(self, tabla: Image.Image) -> Image.Image:
+        """Recorta la parte inferior de la tabla, donde estan las filas finales."""
+        w, h = tabla.size
+        return tabla.crop((0, int(h * INICIO_FRANJA_TOTALES), w, h))
+
+    def _prompt_totales(self) -> str:
+        """Prompt para leer las filas finales guiandose por su etiqueta impresa."""
+        etiquetas = ", ".join(f'"{e}"' for e in FILAS_FINALES.values())
+        return (
+            "Esta imagen es la parte inferior de la tabla de resultados de un Acta "
+            "de Escrutinio y Cómputo mexicana. Localiza las filas cuya etiqueta "
+            f"impresa a la izquierda dice {etiquetas}. "
+            "Guíate por esas etiquetas, no por la posición de las filas. "
+            "Cada fila tiene el número de votos escrito a mano dos veces: "
+            "con letra en la columna central y con dígitos en la columna derecha, "
+            "en tres casillas con ceros a la izquierda (por ejemplo 467). "
+            "Un cero puede aparecer cruzado por una diagonal. "
+            "Transcribe exactamente lo escrito en cada una de esas tres filas: "
+            "votos_letra es el texto manuscrito tal cual, "
+            "votos_numero son los tres dígitos como texto."
+        )
+
+    def _leer_totales(self, tabla: Image.Image) -> dict | None:
+        """Lee las filas finales en una llamada dedicada; None si falla."""
+        franja = self._recortar_franja_totales(tabla)
+        try:
+            return self._llamar_modelo(
+                franja, self._prompt_totales(), RESOLUCIONES[0], ESQUEMA_TOTALES
+            )
+        except (json.JSONDecodeError, requests.RequestException, KeyError):
+            return None
+
     def _llamar_modelo(
         self, tabla: Image.Image, prompt: str, max_px: int, esquema: dict
     ) -> dict:
@@ -155,11 +261,8 @@ class QwenAdapter(ExtractorPort):
         texto = re.sub(r"```json|```", "", respuesta.json()["response"].strip()).strip()
         return json.loads(texto)
 
-    def extraer(self, imagen_bytes: bytes, eleccion: str) -> dict:
-        """Extrae la tabla de resultados con reintentos a distintas resoluciones."""
-        plantilla = obtener_plantilla(eleccion)
-        filas = plantilla["filas"]
-        tabla = self._recortar_tabla(imagen_bytes, plantilla["zona_tabla"])
+    def _leer_tabla(self, tabla: Image.Image, filas: list[str]) -> dict:
+        """Lee la tabla completa con reintentos a distintas resoluciones."""
         prompt = self._construir_prompt(filas)
         esquema = _esquema_respuesta(len(filas))
 
@@ -174,12 +277,30 @@ class QwenAdapter(ExtractorPort):
             if len(datos["resultados"]) == len(filas):
                 datos["intentos"] = intento
                 datos["completa"] = True
-                datos["eleccion"] = eleccion
                 return datos
             if len(datos["resultados"]) > len(mejor["resultados"]):
                 mejor = datos
 
         mejor["intentos"] = len(RESOLUCIONES)
         mejor["completa"] = False
-        mejor["eleccion"] = eleccion
         return mejor
+
+    def extraer(self, imagen_bytes: bytes, eleccion: str) -> dict:
+        """Extrae la tabla de resultados y verifica las filas finales por separado.
+
+        1. Lectura principal de la tabla completa, asignando filas por posicion.
+        2. Lectura dedicada de NO REGISTRADOS, NULOS y TOTAL, guiada por sus
+           etiquetas impresas, que reemplaza esas filas de la lectura principal.
+        """
+        plantilla = obtener_plantilla(eleccion)
+        filas = plantilla["filas"]
+        tabla = self._recortar_tabla(imagen_bytes, plantilla["zona_tabla"])
+
+        datos = self._leer_tabla(tabla, filas)
+        datos["eleccion"] = eleccion
+        if datos["completa"]:
+            datos = _aplicar_totales(datos, self._leer_totales(tabla))
+        else:
+            datos["totales_verificados"] = False
+            datos["desfase_detectado"] = False
+        return datos

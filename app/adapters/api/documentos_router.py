@@ -18,6 +18,28 @@ _RESPONSES = {
     500: {"description": "Error interno al procesar el documento."},
 }
 
+# Proporcion minima de filas con confianza alta (letra y numero coinciden)
+# para aprobar un acta sin revision humana. Evita validar actas en las que
+# ninguna fila tuvo doble confirmacion aunque la suma haya cuadrado.
+MIN_PROPORCION_ALTA = 0.5
+
+
+def _motivos_revision(datos: dict, suma: dict, confianza: dict, n_filas: int) -> list[str]:
+    """Devuelve la lista de razones por las que el acta requiere revision humana."""
+    motivos = []
+    if not datos.get("completa", False):
+        motivos.append("El modelo no devolvio todas las filas del acta")
+    if not suma["valida"]:
+        motivos.append(suma["motivo"])
+    if confianza["baja"] > 0:
+        motivos.append(f"{confianza['baja']} fila(s) con letra y numero contradictorios")
+    if n_filas and confianza["alta"] / n_filas < MIN_PROPORCION_ALTA:
+        motivos.append(
+            f"Solo {confianza['alta']} de {n_filas} filas con doble confirmacion "
+            f"(minimo {int(MIN_PROPORCION_ALTA * 100)}%)"
+        )
+    return motivos
+
 
 def _evaluar(datos: dict) -> dict:
     """Aplica el agente validador sobre los datos extraidos."""
@@ -28,20 +50,19 @@ def _evaluar(datos: dict) -> dict:
         "media": sum(1 for f in filas if f["confianza"] == "media"),
         "baja": sum(1 for f in filas if f["confianza"] == "baja"),
     }
-    requiere_revision = (
-        not datos.get("completa", False)
-        or not suma["valida"]
-        or confianza["baja"] > 0
-    )
+    motivos = _motivos_revision(datos, suma, confianza, len(filas))
     return {
         "eleccion": datos.get("eleccion"),
         "resultados": filas,
         "completa": datos.get("completa", False),
         "intentos": datos.get("intentos", 1),
+        "totales_verificados": datos.get("totales_verificados", False),
+        "desfase_detectado": datos.get("desfase_detectado", False),
         "validacion": {
             "suma": suma,
             "confianza": confianza,
-            "requiere_revision_humana": requiere_revision,
+            "requiere_revision_humana": bool(motivos),
+            "motivos_revision": motivos,
         },
     }
 

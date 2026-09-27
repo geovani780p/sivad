@@ -90,12 +90,13 @@ def _corregir_palabra(palabra: str) -> str | None:
 def letra_a_numero(texto) -> int | None:
     """Convierte un numero escrito en letra a entero.
 
-    Tolera faltas de ortografia y separaciones incorrectas comunes en
-    la escritura manual de las actas:
+    Tolera faltas de ortografia, separaciones incorrectas y formas coloquiales
+    comunes en la escritura manual de las actas:
         "cuatrocientos sesenta y siete" -> 467
         "veinti tres"                   -> 23
         "dos cientos"                   -> 200
         "quiace"                        -> 15
+        "tres treinta y cinco"          -> 335  (centena coloquial)
 
     Devuelve None si el texto no representa un numero reconocible.
     """
@@ -123,10 +124,13 @@ def letra_a_numero(texto) -> int | None:
             parcial = 0
         elif termino in _CENTENAS:
             parcial += _CENTENAS[termino]
-        elif termino in _DECENAS:
-            parcial += _DECENAS[termino]
         else:
-            parcial += _UNIDADES[termino]
+            valor = _DECENAS.get(termino, _UNIDADES.get(termino, 0))
+            # Centena coloquial: en espanol correcto una unidad nunca precede a
+            # una decena, por lo que "tres treinta" solo puede significar 330.
+            if valor >= 10 and 1 <= parcial <= 9:
+                parcial *= 100
+            parcial += valor
         encontro_algo = True
 
     return total + parcial if encontro_algo else None
