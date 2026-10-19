@@ -4,7 +4,9 @@
 import base64
 import io
 import json
+import os
 import re
+
 
 import requests
 from PIL import Image
@@ -12,7 +14,9 @@ from PIL import Image
 from app.domain.plantillas import obtener_plantilla
 from app.ports.extractor_port import ExtractorPort
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
+# Direccion de Ollama. En la computadora de desarrollo es localhost; dentro de
+# Docker Compose se define con la variable de entorno OLLAMA_URL.
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
 MODELO = "qwen2.5vl:7b"
 RESOLUCIONES = [1280, 1600, 1024]
 
@@ -290,7 +294,7 @@ class QwenAdapter(ExtractorPort):
 
         1. Lectura principal de la tabla completa, asignando filas por posicion.
         2. Lectura dedicada de NO REGISTRADOS, NULOS y TOTAL, guiada por sus
-           etiquetas impresas, que reemplaza esas filas de la lectura principal.
+        etiquetas impresas, que reemplaza esas filas de la lectura principal.
         """
         plantilla = obtener_plantilla(eleccion)
         filas = plantilla["filas"]
