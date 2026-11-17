@@ -18,6 +18,9 @@ from app.ports.extractor_port import ExtractorPort
 # Docker Compose se define con la variable de entorno OLLAMA_URL.
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
 MODELO = "qwen2.5vl:7b"
+# Version del prompt documentada en la Bitacora de Prompts. Se registra en cada
+# acta guardada para saber con que version del sistema fue leida.
+VERSION_PROMPT = "10"
 RESOLUCIONES = [1280, 1600, 1024]
 
 # repeat_penalty se mantiene en 1.0: en una respuesta JSON los tokens se
