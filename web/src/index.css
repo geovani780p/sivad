@@ -1,0 +1,527 @@
+/* Copyright (C) 2026 INE - Instituto Nacional Electoral
+   SIVAD - Sistema Inteligente de Validacion y Extraccion de Documentos
+   Estilos generales de la interfaz. */
+
+:root {
+  --color-principal: #b5006e;
+  --color-principal-oscuro: #8a0054;
+  --texto: #1f2328;
+  --texto-suave: #5b6169;
+  --fondo: #f5f6f8;
+  --superficie: #ffffff;
+  --borde: #d9dce1;
+
+  --verde: #1a7f37;
+  --verde-fondo: #e6f4ea;
+  --amarillo: #8a6100;
+  --amarillo-fondo: #fff4d6;
+  --rojo: #b42318;
+  --rojo-fondo: #fdecea;
+
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--texto);
+  background: var(--fondo);
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Encabezado institucional */
+.encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px 32px;
+  background: var(--color-principal);
+  color: #fff;
+  padding: 16px 32px 0;
+}
+
+.encabezado > div {
+  padding-bottom: 16px;
+}
+
+/* Pestanas de navegacion */
+.pestanas {
+  display: flex;
+  gap: 4px;
+}
+
+.pestanas button {
+  font: inherit;
+  font-weight: 600;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.pestanas button:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.pestanas button.activa {
+  background: var(--fondo);
+  color: var(--color-principal);
+}
+
+/* Boton secundario (Volver, Actualizar, Ver) */
+.boton-secundario {
+  font: inherit;
+  font-weight: 600;
+  padding: 6px 16px;
+  border: 1px solid var(--color-principal);
+  border-radius: 6px;
+  background: var(--superficie);
+  color: var(--color-principal);
+  cursor: pointer;
+}
+
+.boton-secundario:hover:not(:disabled) {
+  background: #fbe9f3;
+}
+
+.boton-secundario:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Historial */
+.barra-historial {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.barra-historial h2 {
+  margin: 0;
+}
+
+.acciones {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.acciones label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.acciones select {
+  font: inherit;
+  padding: 6px;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+}
+
+.tabla-historial .archivo {
+  word-break: break-all;
+}
+
+.vacio {
+  padding: 32px;
+  text-align: center;
+  color: var(--texto-suave);
+  background: var(--superficie);
+  border: 1px dashed var(--borde);
+  border-radius: 8px;
+}
+
+.espacio {
+  margin-top: 16px;
+}
+
+/* Estado del acta */
+.estado {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.estado-validada {
+  background: var(--verde-fondo);
+  color: var(--verde);
+}
+
+.estado-revision_humana {
+  background: var(--amarillo-fondo);
+  color: var(--amarillo);
+}
+
+/* Datos de trazabilidad del acta */
+.trazabilidad {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 16px 0 0;
+  padding: 16px;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+}
+
+.trazabilidad dt {
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+.trazabilidad dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.trazabilidad .ancho-completo {
+  grid-column: 1 / -1;
+}
+
+.codigo {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 13px;
+  word-break: break-all;
+}
+
+.encabezado h1 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: 1px;
+}
+
+.encabezado p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.contenido {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 32px;
+}
+
+/* Formulario para procesar un acta */
+.formulario {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.formulario label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.formulario select,
+.formulario input {
+  font: inherit;
+  font-weight: 400;
+  padding: 8px;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  min-width: 280px;
+  background: #fff;
+}
+
+.formulario button {
+  font: inherit;
+  font-weight: 600;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-principal);
+  color: #fff;
+  cursor: pointer;
+}
+
+.formulario button:hover:not(:disabled) {
+  background: var(--color-principal-oscuro);
+}
+
+.formulario button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.aviso {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 14px;
+}
+
+/* Mensajes */
+.mensaje-error,
+.mensaje-advertencia {
+  margin: 16px 0 0;
+  padding: 12px 16px;
+  border-radius: 6px;
+}
+
+.mensaje-error {
+  background: var(--rojo-fondo);
+  color: var(--rojo);
+}
+
+.mensaje-advertencia {
+  background: var(--amarillo-fondo);
+  color: var(--amarillo);
+}
+
+/* Imagen a la izquierda, resultado a la derecha */
+.columnas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 24px;
+  margin-top: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .columnas {
+    grid-template-columns: 1fr;
+  }
+}
+
+.imagen-acta {
+  margin: 0;
+  position: sticky;
+  top: 16px;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.imagen-acta .marco {
+  overflow: auto;
+}
+
+.imagen-acta button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: zoom-in;
+}
+
+.imagen-acta img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Ampliada: la imagen se muestra a tamano real dentro de un marco con scroll */
+.imagen-acta.ampliada .marco {
+  max-height: 80vh;
+  border: 1px solid var(--borde);
+}
+
+.imagen-acta.ampliada button {
+  width: max-content;
+  cursor: zoom-out;
+}
+
+.imagen-acta.ampliada img {
+  width: auto;
+  max-width: none;
+}
+
+.imagen-acta figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-top: 8px;
+  color: var(--texto-suave);
+  font-size: 14px;
+}
+
+.imagen-acta figcaption a {
+  color: var(--color-principal);
+}
+
+.nombre-archivo {
+  word-break: break-all;
+}
+
+/* Veredicto del agente validador */
+.veredicto {
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 6px solid;
+}
+
+.veredicto strong {
+  display: block;
+  font-size: 18px;
+}
+
+.veredicto ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.veredicto-validada {
+  background: var(--verde-fondo);
+  border-color: var(--verde);
+  color: var(--verde);
+}
+
+.veredicto-revision {
+  background: var(--amarillo-fondo);
+  border-color: var(--amarillo);
+  color: var(--amarillo);
+}
+
+/* Guia para el revisor cuando la suma no cuadra */
+.guia-revision {
+  margin: 12px 0 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--superficie);
+  border: 1px dashed var(--amarillo);
+  color: var(--texto);
+}
+
+/* Tarjetas con la suma y la coincidencia letra/numero */
+.resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.dato {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.dato span {
+  display: block;
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+.dato strong {
+  font-size: 20px;
+}
+
+.dato small {
+  display: block;
+  color: var(--texto-suave);
+  font-size: 12px;
+}
+
+.dato-alerta {
+  background: var(--rojo-fondo);
+  border-color: var(--rojo);
+}
+
+.dato-alerta strong {
+  color: var(--rojo);
+}
+
+/* Tabla de votos */
+.tabla-votos {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  font-size: 14px;
+}
+
+.tabla-votos th,
+.tabla-votos td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--borde);
+  text-align: left;
+}
+
+.tabla-votos th {
+  background: #eef0f3;
+}
+
+.tabla-votos .numero {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabla-votos .letra {
+  color: var(--texto-suave);
+}
+
+.tabla-votos .fila-total td {
+  font-weight: 700;
+  border-top: 2px solid var(--texto);
+}
+
+.tabla-votos .fila-alerta td {
+  background: var(--rojo-fondo);
+}
+
+.tabla-votos .equivale {
+  color: var(--rojo);
+  font-weight: 600;
+}
+
+.nota-tabla {
+  margin: 8px 0 0;
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+/* Etiqueta por fila: si la letra y el numero coinciden */
+.confianza {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.confianza-alta {
+  background: var(--verde-fondo);
+  color: var(--verde);
+}
+
+.confianza-media {
+  background: var(--amarillo-fondo);
+  color: var(--amarillo);
+}
+
+.confianza-baja {
+  background: var(--rojo-fondo);
+  color: var(--rojo);
+}

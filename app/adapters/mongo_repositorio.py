@@ -40,8 +40,12 @@ class MongoRepositorio(RepositorioActasPort):
     """Implementacion del RepositorioActasPort sobre MongoDB y GridFS."""
 
     def __init__(self, url: str = MONGO_URL) -> None:
-        """Prepara la conexion; MongoDB no se contacta hasta la primera operacion."""
-        self._cliente = MongoClient(url, serverSelectionTimeoutMS=5000)
+        """Prepara la conexion; MongoDB no se contacta hasta la primera operacion.
+
+        tz_aware=True hace que las fechas leidas conserven su zona horaria (UTC);
+        sin el, se entregan sin zona y el navegador las interpreta como hora local.
+        """
+        self._cliente = MongoClient(url, serverSelectionTimeoutMS=5000, tz_aware=True)
         base = self._cliente[BASE_DATOS]
         self._actas = base[COLECCION_ACTAS]
         self._imagenes = gridfs.GridFS(base, collection=COLECCION_IMAGENES)
